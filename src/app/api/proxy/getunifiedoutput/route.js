@@ -8,6 +8,11 @@ export async function POST(request) {
     const mds_name = formData.get('mds_name');
     const grade_label = formData.get('grade_label');
 
+    console.log('Unified Output API Request:', {
+      mtr_id,
+      mds_name,
+      grade_label
+    });
 
     // Make the request to the external API
     const response = await fetch('http://20.205.169.17:3002/get_unified_output', {
@@ -19,12 +24,30 @@ export async function POST(request) {
       body: `mtr_id=${mtr_id}&mds_name=${mds_name}&grade_label=${grade_label}`,
     });
 
+    console.log('Unified Output API Response Status:', response.status);
+    console.log('Unified Output API Response Headers:', Object.fromEntries(response.headers.entries()));
+
     const data = await response.json();
     console.log('Get Unified Output API Response:', data);
     
-    return Response.json(data);
+    if (!response.ok) {
+      console.error('Unified Output API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        data
+      });
+      return NextResponse.json(
+        { error: data.error || data.errorMessage || data.errorType || 'Failed to get unified output' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error in get unified output API:', error);
-    return Response.json({ error: error.message });
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
