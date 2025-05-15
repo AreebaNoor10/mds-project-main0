@@ -8,20 +8,28 @@ export async function POST(request) {
     const mds_name = formData.get('mds_name');
     const grade_label = formData.get('grade_label');
 
+    // Validate required fields
+    if (!mds_name || !grade_label) {
+      return NextResponse.json(
+        { error: 'MDS name and grade label are required' },
+        { status: 400 }
+      );
+    }
+
     console.log('Unified Output API Request:', {
       mtr_id,
       mds_name,
       grade_label
     });
 
-    // Make the request to the external API
+    // Make the request to the external API with properly encoded parameters
     const response = await fetch('http://20.205.169.17:3002/get_unified_output', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `mtr_id=${mtr_id}&mds_name=${mds_name}&grade_label=${grade_label}`,
+      body: `mtr_id=${encodeURIComponent(mtr_id || '')}&mds_name=${encodeURIComponent(mds_name)}&grade_label=${encodeURIComponent(grade_label)}`,
     });
 
     console.log('Unified Output API Response Status:', response.status);
