@@ -260,24 +260,36 @@ export default function Dashboard() {
       if (mtrKeysId) {
         formData.append('mtr_id', mtrKeysId);
       }
+      
       console.log('Sending request to unified output API with:', {
         mds_name: mdsName,
         grade_label: typeValue,
         mtr_id: mtrKeysId
       });
+
       const response = await fetch('/api/proxy/getunifiedoutput', {
         method: 'POST',
         body: formData
       });
+
+      console.log('Unified Output API Response Status:', response.status);
+      console.log('Unified Output API Response Headers:', Object.fromEntries(response.headers.entries()));
+
       const data = await response.json();
       console.log('Unified Output API Response:', data);
       
       if (!response.ok) {
-        const errorMessage = data.errorMessage || data.error || 'Failed to get unified output';
+        const errorMessage = data.error || data.errorMessage || data.errorType || 'Failed to get unified output';
+        console.error('Unified Output API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
         throw new Error(errorMessage);
       }
       
       if (data.errorType) {
+        console.error('Unified Output API Error Type:', data.errorType);
         throw new Error(data.errorMessage || 'An error occurred while processing the request');
       }
       

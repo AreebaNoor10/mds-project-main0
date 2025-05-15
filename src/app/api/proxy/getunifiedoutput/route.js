@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    // Get the form data from the request
     const formData = await request.formData();
     const mtr_id = formData.get('mtr_id');
     const mds_name = formData.get('mds_name');
@@ -22,14 +21,18 @@ export async function POST(request) {
       grade_label
     });
 
-    // Make the request to the external API with properly encoded parameters
+    // Create a new FormData object for the external API request
+    const externalFormData = new FormData();
+    if (mtr_id) externalFormData.append('mtr_id', mtr_id);
+    externalFormData.append('mds_name', mds_name);
+    externalFormData.append('grade_label', grade_label);
+
     const response = await fetch('http://20.205.169.17:3002/get_unified_output', {
       method: 'POST',
+      body: externalFormData,
       headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `mtr_id=${encodeURIComponent(mtr_id || '')}&mds_name=${encodeURIComponent(mds_name)}&grade_label=${encodeURIComponent(grade_label)}`,
+        'accept': 'application/json'
+      }
     });
 
     console.log('Unified Output API Response Status:', response.status);
@@ -58,4 +61,17 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+}
+
+// Add OPTIONS handler for CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    }
+  });
 }
